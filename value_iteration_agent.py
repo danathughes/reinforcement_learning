@@ -205,7 +205,18 @@ class QValueIterationAgent:
 		Determine which action results in the best next state
 		"""
 
-		pass
+		# Start with assuming that action 0 is the best
+		best_Q = self.values[(self.state, self.actions[0])]
+		best_action = self.actions[0]
+
+		# Go through each action and determine the Q value, and see if there's improvement
+		for action in self.actions:
+			Q = self.values[(self.state, action)]
+			if Q > best_Q:
+				best_Q = Q
+				best_action = action
+
+		return best_action
 
 
 	def learn(self, action, reward, is_terminal):

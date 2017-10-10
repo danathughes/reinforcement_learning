@@ -66,7 +66,7 @@ class GridWorld:
 
 		# Update the current state, and get the reward
 		next_state = next_states[next_state_idx]
-		reward = reward(self.state, action, next_state)
+		reward = self.reward(self.state, action, next_state)
 
 		self.state = next_state
 
