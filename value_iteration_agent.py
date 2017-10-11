@@ -20,8 +20,8 @@ class ValueIterationAgent:
 		self.environment = environment
 
 		# What are the possible states and actions?
-		self.states = self.environment.get_states()
-		self.actions = self.environment.get_actions()
+		self.states = self.environment.states
+		self.actions = self.environment.actions
 
 		# The value function will be stored in a table mapping
 		# states (from the environment) to values
@@ -80,7 +80,7 @@ class ValueIterationAgent:
 
 			# Is the state terminal?  Then the values is simply 0.
 			# Reward is applied for *entering* the state
-			if self.environment.is_terminal[state]:
+			if state in self.environment.is_terminal:
 				new_values[state] = 0.0
 
 		# All the state's new values are calculated.  Update the agent's value function
@@ -125,8 +125,8 @@ class QValueIterationAgent:
 		self.environment = environment
 
 		# What are the possible states and actions?
-		self.states = self.environment.get_states()
-		self.actions = self.environment.get_actions()
+		self.states = self.environment.states
+		self.actions = self.environment.actions
 
 		# The value function will be stored in a table mapping
 		# states (from the environment) to values
@@ -184,7 +184,7 @@ class QValueIterationAgent:
 
 				# Is the state terminal?  Then the values is simply 0.
 				# Reward is applied for *entering* the state
-				if self.environment.is_terminal[state]:
+				if state in self.environment.is_terminal:
 					new_values[(state, action)] = 0.0
 
 
