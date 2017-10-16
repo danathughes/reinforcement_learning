@@ -9,10 +9,8 @@ from time import sleep
 WIDTH = 25
 HEIGHT = 30
 
-REWARD_MIN_X = 5
-REWARD_MIN_Y = 5
 
-def make_random_gridworld(width=25, height=30, **kwargs):
+def make_random_gridworld(width=WIDTH, height=HEIGHT, **kwargs):
 	"""
 	Create a random gridworld environment
 	"""
@@ -69,6 +67,8 @@ def make_visualizer(environment):
 		reward = environment.rewards.get(loc, 0)
 		visualizer.set_value(x,y,reward)
 
+	return visualizer
+
 
 ###
 ### Main Program
@@ -98,6 +98,7 @@ while inp != 'q':
 		environment.act(action)
 	elif inp == 'r':
 		environment.reset()
+		environment.state = (random.randint(0, WIDTH-1), random.randint(0, HEIGHT-1))
 	elif inp == 'l':
 		agent.learn()
 	elif inp == 't':
