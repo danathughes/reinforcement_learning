@@ -23,7 +23,7 @@ def make_random_gridworld(width=25, height=30, **kwargs):
 	neg_reward = kwargs.get('neg_reward', -100)
 	num_blocks = kwargs.get('num_blocks', 250)
 	reward_min_x = kwargs.get('reward_min_x', 5)
-	reward_min_y = keargs.get('reward_min_y', 5)
+	reward_min_y = kwargs.get('reward_min_y', 5)
 	num_pos_rewards = kwargs.get('num_pos_rewards', 3)
 	num_neg_rewards = kwargs.get('num_neg_rewards', 3)
 
