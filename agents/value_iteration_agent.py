@@ -78,7 +78,7 @@ class ValueIterationAgent:
 			next_values[action] = value
 
 		# Determine the best action
-		best_value = max(next_values.keys())
+		best_value = max(next_values.values())
 		best_action = None
 
 		for action in self.actions:
@@ -86,6 +86,52 @@ class ValueIterationAgent:
 				best_action = action
 
 		return best_action
+
+
+	def update_values(self):
+		"""
+		Perform a single value update
+		"""
+
+		max_difference = 0.0
+
+		# Place to store new state values
+		new_values = {}
+
+		# Go through each state and update its value
+		for state in self.states:
+			# Calculate the value of each action
+			action_values = []
+
+			for action in self.actions:
+				# What is the transition function?
+				next_states, probs = self.environment.transitions(state, action)
+
+				# Calculate the future reward (reward + discounted next state value) for 
+				# each of the next states, weighted by the transition probability
+				future_reward = 0.0
+
+				for ns, p in zip(next_states, probs):
+					future_reward += p * (self.environment.reward(state, action, ns))    # Immediate reward
+					future_reward += p * self.discount * self.values[ns]                 # Discounted future value
+
+				action_values.append(future_reward)
+
+			# What is the value of the best action in this state?
+			new_values[state] = max(action_values)
+
+			# Is the state terminal?  Then the values is simply 0.
+			# Reward is applied for *entering* the state
+			if state in self.environment.is_terminal:
+				new_values[state] = 0.0
+
+			# Update the maximum difference between value updates
+			max_difference = max(max_difference, abs(new_values[state] - self.values[state]))
+
+		# All the state's new values are calculated.  Update the agent's value function
+		self.values = new_values
+
+		return max_difference
 
 
 	def learn(self, threshold=1e-4):
@@ -98,45 +144,7 @@ class ValueIterationAgent:
 		max_difference = 2*threshold
 
 		while max_difference > threshold:
-
-			max_difference = 0.0
-
-			# Place to store new state values
-			new_values = {}
-
-			# Go through each state and update its value
-			for state in self.states:
-				# Calculate the value of each action
-				action_values = []
-
-				for action in self.actions:
-					# What is the transition function?
-					next_states, probs = self.environment.transitions(state, action)
-
-					# Calculate the future reward (reward + discounted next state value) for 
-					# each of the next states, weighted by the transition probability
-					future_reward = 0.0
-
-					for ns, p in zip(next_states, probs):
-						future_reward += p * (self.environment.reward(state, action, ns))    # Immediate reward
-						future_reward += p * self.discount * self.values[ns]                 # Discounted future value
-
-					action_values.append(future_reward)
-
-				# What is the value of the best action in this state?
-				new_values[state] = max(action_values)
-
-				# Is the state terminal?  Then the values is simply 0.
-				# Reward is applied for *entering* the state
-				if state in self.environment.is_terminal:
-					new_values[state] = 0.0
-
-				# Update the maximum difference between value updates
-				max_difference = max(max_difference, abs(new_values[state] - self.values[state]))
-
-			# All the state's new values are calculated.  Update the agent's value function
-			self.values = new_values
-
+			max_difference = self.update_values()
 
 
 class QValueIterationAgent:
