@@ -12,44 +12,79 @@ HEIGHT = 30
 REWARD_MIN_X = 5
 REWARD_MIN_Y = 5
 
-# Make an environment and add a few random reward areas and blocks
-environment = GridWorld(25,30, noise=0.1)
+def make_random_gridworld(width=25, height=30, **kwargs):
+	"""
+	Create a random gridworld environment
+	"""
 
-# Add three positive and negative rewards, at least a few steps away from the start
-for i in range(3):
-	x = random.randint(REWARD_MIN_X, WIDTH-1)
-	y = random.randint(REWARD_MIN_Y, HEIGHT-1)
-	environment.set_reward((x,y),100)
-	environment.add_terminal((x,y))
+	# Get optional arguments or default values
+	noise = kwargs.get('noise', 0.1)
+	pos_reward = kwargs.get('pos_reward', 100)
+	neg_reward = kwargs.get('neg_reward', -100)
+	num_blocks = kwargs.get('num_blocks', 250)
+	reward_min_x = kwargs.get('reward_min_x', 5)
+	reward_min_y = keargs.get('reward_min_y', 5)
+	num_pos_rewards = kwargs.get('num_pos_rewards', 3)
+	num_neg_rewards = kwargs.get('num_neg_rewards', 3)
 
-for i in range(3):
-	x = random.randint(REWARD_MIN_X, WIDTH-1)
-	y = random.randint(REWARD_MIN_Y, HEIGHT-1)
-	environment.set_reward((x,y),-100)
-	environment.add_terminal((x,y))
+	# Make an environment and add a few random reward areas and blocks
+	environment = GridWorld(25,30, noise=noise)
 
-# Add some blocks
-for i in range(250):
-	x = random.randint(1, WIDTH-1)
-	y = random.randint(1, HEIGHT-1)
-	environment.block(x,y)
+	# Add positive rewards, at least a few steps away from the start
+	for i in range(num_pos_rewards):
+		x = random.randint(reward_min_x, width-1)
+		y = random.randint(reward_min_y, height-1)
+		environment.set_reward((x,y),pos_reward)
+		environment.add_terminal((x,y))
 
-# Create a display - add blocked areas and set terminal area rewards
-visualizer = GridworldVisualizer(WIDTH, HEIGHT, 25, 25)
-for loc in environment.is_blocked:
-	x,y = loc
-	visualizer.set_blocked(x,y)
-for loc in environment.is_terminal:
-	x,y = loc
-	reward = environment.rewards.get(loc, 0)
-	visualizer.set_value(x,y,reward)
+	for i in range(3):
+		x = random.randint(reward_min_x, width-1)	
+		y = random.randint(reward_min_y, height-1)
+		environment.set_reward((x,y),neg_reward)
+		environment.add_terminal((x,y))
 
-# Draw the initial state
+	# Add some blocks
+	for i in range(num_blocks):
+		x = random.randint(1, width-1)
+		y = random.randint(1, height-1)
+		environment.block(x,y)
+
+	return environment
+
+
+def make_visualizer(environment):
+	"""
+	Create visualization for the environment\
+	"""
+
+	width, height = environment.shape
+
+	# Create a display - add blocked areas and set terminal area rewards
+	visualizer = GridworldVisualizer(width, height, 25, 25)
+	for loc in environment.is_blocked:
+		x,y = loc
+		visualizer.set_blocked(x,y)
+	for loc in environment.is_terminal:
+		x,y = loc
+		reward = environment.rewards.get(loc, 0)
+		visualizer.set_value(x,y,reward)
+
+
+###
+### Main Program
+###
+
+
+# Create an environment
+environment = make_random_gridworld()
+visualizer = make_visualizer(environment)
 visualizer.draw()
 
 # Create an agent
 agent = ValueIterationAgent(environment)
 
+
+# Get user input and perform various actions
 inp = raw_input()
 
 while inp != 'q':
