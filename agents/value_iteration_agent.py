@@ -1,12 +1,13 @@
-## value_iteration_agent.py			Dana Hughes				09-Oct-2017
+## NFQ.py			Dana Hughes					17-Oct-2017
 ##
-## Agents which perform value iteration (i.e., learns V(s) or Q(s,a))
-## in order to learn a policy
+## 
 
 import numpy as np
 import random
 
-class ValueIterationAgent:
+from parts import *
+
+class NFQAgent:
 	"""
 	An agent which performs value iteration
 	"""
@@ -23,29 +24,11 @@ class ValueIterationAgent:
 		self.states = self.environment.states
 		self.actions = self.environment.actions
 
-		# The value function will be stored in a table mapping
-		# states (from the environment) to values
-		self.values = {}
-		self.initialize_values()
-
 		# What is the discount factor be?
 		self.discount = kwargs.get('discount', 0.9)
 
 		# What is the current state?
 		self.state = None
-
-
-	def initialize_values(self, std_dev = 0.0):
-		"""
-		Set up the value table.  Values are initialized using
-		a normal distribution centered around 0.
-
-		std_dev - standard deviation of the normal distribution
-		          0.0 sets all values to 0.0
-		"""
-
-		for state in self.states:
-			self.values[state] = np.random.normal(0, std_dev)
 
 
 	def observe(self, state):
