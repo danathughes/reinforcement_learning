@@ -59,7 +59,8 @@ class GridworldVisualizer:
 
    			r = pygame.Rect(self.cell_width*x, self.cell_height*y, self.cell_width, self.cell_height)
 
-   			lvl = abs(int(255*self.values[x,y] / self.max_value))
+   			lvl = min(abs(int(255*self.values[x,y] / self.max_value)), 255)
+
    			if self.values[x,y] > 0:
    				c = pygame.Color(0, lvl, 0, 0)
    			elif self.values[x,y] < 0:

@@ -6,8 +6,8 @@ from environments.visualizer import *
 import random
 from time import sleep
 
-WIDTH = 25
-HEIGHT = 30
+WIDTH = 20
+HEIGHT = 10
 
 
 def make_random_gridworld(width=WIDTH, height=HEIGHT, **kwargs):
@@ -19,14 +19,14 @@ def make_random_gridworld(width=WIDTH, height=HEIGHT, **kwargs):
 	noise = kwargs.get('noise', 0.1)
 	pos_reward = kwargs.get('pos_reward', 100)
 	neg_reward = kwargs.get('neg_reward', -100)
-	num_blocks = kwargs.get('num_blocks', 250)
+	num_blocks = kwargs.get('num_blocks', 50)
 	reward_min_x = kwargs.get('reward_min_x', 5)
 	reward_min_y = kwargs.get('reward_min_y', 5)
 	num_pos_rewards = kwargs.get('num_pos_rewards', 3)
 	num_neg_rewards = kwargs.get('num_neg_rewards', 3)
 
 	# Make an environment and add a few random reward areas and blocks
-	environment = GridWorld(25,30, noise=noise)
+	environment = GridWorld(width, height, noise=noise)
 
 	# Add positive rewards, at least a few steps away from the start
 	for i in range(num_pos_rewards):

@@ -40,10 +40,29 @@ class Q_Net:
 		self.target = tf.placeholder(tf.float32, (None,1))
 		loss = 0.5 * tf.square(self.Q - self.target)
 
-		self.train_step = tf.train.RMSPropOptimizer(0.1).minimize(loss)
+		self.train_step = tf.train.RMSPropOptimizer(0.05).minimize(loss)
 
 		# Initialize the variables
 		self.sess.run(tf.global_variables_initializer())
+
+
+	def get_Q(self, state, action):
+		"""
+		"""
+
+		state = np.reshape(state, (1,) + state.shape)
+		action = np.reshape(action, (1,) + action.shape)
+
+		return self.sess.run(self.Q, feed_dict = {self.state: state, self.action: action})[0,0]
+
+
+	def train(self, states, actions, targets):
+		"""
+		"""
+
+		fd = {self.state: states, self.action: actions, self.target: targets}
+
+		self.sess.run(self.train_step, feed_dict = fd)
 		
 
 
@@ -70,6 +89,9 @@ class NFQAgent:
 		# What is the discount factor be?
 		self.discount = kwargs.get('discount', 0.9)
 
+		# Epsilon-greedy value
+		self.epsilon = kwargs.get('epsilon', 1.0)
+
 		# What is the current state?
 		self.state = None
 		self.action = None
@@ -92,7 +114,7 @@ class NFQAgent:
 		return one_hot
 
 
-	def actions_to_one_hot(self, action):
+	def action_to_one_hot(self, action):
 		"""
 		"""
 
@@ -118,7 +140,7 @@ class NFQAgent:
 
 		# Create a new transition experience (if applicable)
 		if self.state:
-			experience = (self.state, action, reward, state, is_terminal)
+			experience = (self.state, self.action, self.reward, state, is_terminal)
 			self.experiences.append(experience)
 
 		self.state = state
@@ -129,34 +151,26 @@ class NFQAgent:
 		Determine which action results in the best next state
 		"""
 
-		# Calculate the expected value after each action
-		next_values = {}
+		if random.random() < self.epsilon:
+			action = random.choice(list(self.actions))
+			self.action = action
+			return action
+
+		state = self.state_to_one_hot(self.state)
+
+		best_action = list(self.actions)[0]
+		best_Q = self.net.get_Q(state, self.action_to_one_hot(best_action))
 
 		for action in self.actions:
-
-			# Get the possible next states for performing this action in the current state
-			next_states, probs = self.environment.transitions(self.state, action)
-
-			# Add up the values of the next states
-			value = 0.0
-			for ns, p in zip(next_states, probs):
-				value += p * self.environment.reward(self.state, action, ns) 
-				value += p * self.discount * self.values[ns]
-
-			next_values[action] = value
-
-		# Determine the best action
-		best_value = max(next_values.values())
-		best_action = None
-
-		for action in self.actions:
-			if next_values[action] == best_value:
+			if self.net.get_Q(state, self.action_to_one_hot(action)) > best_Q:
 				best_action = action
+
+		self.action = action
 
 		return best_action
 
 
-	def reward(self, reward):
+	def give_reward(self, reward):
 		"""
 		Receive a reward from the environment
 		"""
@@ -169,6 +183,8 @@ class NFQAgent:
 		"""
 
 		self.state = None
+		self.action = None
+		self.reward = None
 		self.experiences = []
 
 
@@ -176,25 +192,51 @@ class NFQAgent:
 		"""
 		"""
 
-		return 0
+		state_one_hot = self.state_to_one_hot(state)
+
+		best_Q = self.net.get_Q(state_one_hot, self.action_to_one_hot(list(self.actions)[0]))
+
+		for action in self.actions:
+			best_Q = max(best_Q, self.net.get_Q(state_one_hot, self.action_to_one_hot(action)))
+
+		return best_Q
 
 
 	def create_dataset(self):
 		"""
 		"""
 
-		states = np.array([exp[0] for exp in self.experiences])
-		actions = np.array([exp[1] for exp in self.experiences])
+		states = []
+		actions = []
 
-		inputs = (states, actions)
+#		states = np.array([exp[0] for exp in self.experiences])
+#		actions = np.array([exp[1] for exp in self.experiences])
+
+#		inputs = (states, actions)
 
 		targets = []
 		for exp in self.experiences:
+			states.append(self.state_to_one_hot(exp[0]))
+			actions.append(self.action_to_one_hot(exp[1]))
+
 			if exp[4]:                  # Is it terminal?
 				targets.append(exp[3])
 			else:
 				# What's the best action for the next state?
-				Q = self.best_Q(state)
+				Q = self.best_Q(exp[0])
 				targets.append(exp[2] + self.discount * Q)
 
+		states = np.array(states)
+		actions = np.array(actions)
 		targets = np.array(targets)
+
+		return states, actions, targets
+
+
+	def learn(self, train_steps = 1):
+		states, actions, targets = self.create_dataset()
+
+		targets = np.reshape(targets, targets.shape + (1,))
+
+		for i in range(train_steps):
+			self.net.train(states, actions, targets)
